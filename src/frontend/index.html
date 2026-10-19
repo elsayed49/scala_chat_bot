@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProBot — Productivity Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0a0a0a;
+        --surface: #111111;
+        --surface-2: #191919;
+        --border: #242424;
+        --border-hi: #333333;
+        --text: #e2e2e2;
+        --muted: #555555;
+        --accent: #b8ff57;
+        --accent-dim: #7aaa35;
+        --user-bg: #1c1c1c;
+        --bot-bg: #111111;
+        --danger: #ff5f5f;
+        --radius: 12px;
+        --font-head: "Syne", sans-serif;
+        --font-body: "JetBrains Mono", monospace;
+      }
+
+      html,
+      body {
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 14px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Layout ─────────────────────────────────────────── */
+      .layout {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        grid-template-rows: 100vh;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* ── Sidebar ─────────────────────────────────────────── */
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 28px 20px;
+        gap: 32px;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo-mark {
+        width: 32px;
+        height: 32px;
+        background: var(--accent);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo-mark svg {
+        width: 16px;
+        height: 16px;
+        stroke: #0a0a0a;
+        stroke-width: 2.5;
+        fill: none;
+      }
+
+      .logo-text {
+        font-family: var(--font-head);
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        color: var(--text);
+      }
+
+      .logo-text span {
+        color: var(--accent);
+      }
+
+      .sidebar-section {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .sidebar-label {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .category-btn {
+        background: none;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 10px;
+        text-align: left;
+        font-family: var(--font-body);
+        font-size: 12.5px;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .category-btn:hover {
+        background: var(--surface-2);
+        color: var(--text);
+      }
+
+      .category-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        flex-shrink: 0;
+      }
+
+      .sidebar-footer {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .session-badge {
+        font-size: 11px;
+        color: var(--muted);
+        padding: 8px 10px;
+        background: var(--surface-2);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        word-break: break-all;
+        line-height: 1.5;
+      }
+
+      .session-badge strong {
+        display: block;
+        color: var(--accent-dim);
+        margin-bottom: 2px;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+      }
+
+      .clear-btn {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-family: var(--font-body);
+        font-size: 12px;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+        text-align: center;
+      }
+
+      .clear-btn:hover {
+        border-color: var(--danger);
+        color: var(--danger);
+      }
+
+      /* ── Chat Panel ─────────────────────────────────────── */
+      .chat-panel {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .chat-header {
+        padding: 20px 28px 18px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+
+      .chat-title {
+        font-family: var(--font-head);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .status-dot {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .status-dot::before {
+        content: "";
+        display: block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 0 var(--accent);
+        animation: pulse 2.4s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(184, 255, 87, 0.4);
+        }
+        60% {
+          box-shadow: 0 0 0 6px rgba(184, 255, 87, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(184, 255, 87, 0);
+        }
+      }
+
+      /* ── Messages ────────────────────────────────────────── */
+      .messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        scroll-behavior: smooth;
+      }
+
+      .messages::-webkit-scrollbar {
+        width: 4px;
+      }
+      .messages::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .messages::-webkit-scrollbar-thumb {
+        background: var(--border-hi);
+        border-radius: 4px;
+      }
+
+      .msg {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        max-width: 78%;
+        opacity: 0;
+        transform: translateY(8px);
+        animation: appear 0.25s ease forwards;
+      }
+
+      @keyframes appear {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .msg.user {
+        align-self: flex-end;
+        align-items: flex-end;
+      }
+      .msg.bot {
+        align-self: flex-start;
+        align-items: flex-start;
+      }
+
+      .msg-meta {
+        font-size: 10.5px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        padding: 0 4px;
+      }
+
+      .msg-bubble {
+        padding: 12px 16px;
+        border-radius: var(--radius);
+        font-size: 13px;
+        line-height: 1.75;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .msg.user .msg-bubble {
+        background: var(--user-bg);
+        border: 1px solid var(--border-hi);
+        border-bottom-right-radius: 4px;
+        color: var(--text);
+      }
+
+      .msg.bot .msg-bubble {
+        background: var(--bot-bg);
+        border: 1px solid var(--border);
+        border-bottom-left-radius: 4px;
+        color: var(--text);
+      }
+
+      .msg.bot .msg-bubble.accent-line {
+        border-left: 3px solid var(--accent);
+      }
+
+      /* ── Typing indicator ────────────────────────────────── */
+      .typing {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 14px 16px;
+        background: var(--bot-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        border-bottom-left-radius: 4px;
+        width: fit-content;
+      }
+
+      .typing-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--muted);
+        animation: bounce 1.1s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.18s;
+      }
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.36s;
+      }
+
+      @keyframes bounce {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+        }
+        30% {
+          transform: translateY(-5px);
+          background: var(--accent);
+        }
+      }
+
+      /* ── Error bubble ────────────────────────────────────── */
+      .msg-bubble.error {
+        border-left: 3px solid var(--danger);
+        color: #ff9898;
+      }
+
+      /* ── Input area ──────────────────────────────────────── */
+      .input-area {
+        padding: 18px 28px 22px;
+        border-top: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .input-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px 14px;
+        transition: border-color 0.15s;
+      }
+
+      .input-row:focus-within {
+        border-color: var(--accent-dim);
+      }
+
+      #user-input {
+        flex: 1;
+        background: none;
+        border: none;
+        outline: none;
+        font-family: var(--font-body);
+        font-size: 13.5px;
+        color: var(--text);
+        resize: none;
+        max-height: 120px;
+        line-height: 1.6;
+      }
+
+      #user-input::placeholder {
+        color: var(--muted);
+      }
+
+      #send-btn {
+        flex-shrink: 0;
+        width: 34px;
+        height: 34px;
+        background: var(--accent);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        align-self: flex-end;
+      }
+
+      #send-btn:hover {
+        background: #d0ff7a;
+      }
+      #send-btn:active {
+        transform: scale(0.94);
+      }
+      #send-btn:disabled {
+        background: var(--border);
+        cursor: not-allowed;
+      }
+
+      #send-btn svg {
+        width: 15px;
+        height: 15px;
+        stroke: #0a0a0a;
+        stroke-width: 2.5;
+        fill: none;
+      }
+
+      .input-hint {
+        margin-top: 8px;
+        font-size: 11px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      /* ── Welcome splash ──────────────────────────────────── */
+      .welcome {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+      }
+
+      .welcome-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .welcome-icon svg {
+        width: 22px;
+        height: 22px;
+        stroke: var(--accent);
+        stroke-width: 1.8;
+        fill: none;
+      }
+
+      .welcome h2 {
+        font-family: var(--font-head);
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .welcome p {
+        font-size: 13px;
+        max-width: 340px;
+        line-height: 1.7;
+      }
+
+      .quick-btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 8px;
+      }
+
+      .quick-btn {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 7px 16px;
+        font-family: var(--font-body);
+        font-size: 12px;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+
+      .quick-btn:hover {
+        border-color: var(--accent-dim);
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <!-- ── Sidebar ───────────────────────── -->
+      <aside class="sidebar">
+        <div class="logo">
+          <div class="logo-mark">
+            <svg viewBox="0 0 24 24">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+          </div>
+          <span class="logo-text">Pro<span>Bot</span></span>
+        </div>
+
+        <div class="sidebar-section">
+          <p class="sidebar-label">Categories</p>
+          <button
+            class="category-btn"
+            onclick="quickSend('Suggest a focus technique')"
+          >
+            <span class="category-dot" style="color: #b8ff57"></span> Focus
+          </button>
+          <button
+            class="category-btn"
+            onclick="quickSend('Suggest a time management technique')"
+          >
+            <span class="category-dot" style="color: #57d4ff"></span> Time
+            Management
+          </button>
+          <button
+            class="category-btn"
+            onclick="quickSend('Suggest a prioritization technique')"
+          >
+            <span class="category-dot" style="color: #ff9f57"></span>
+            Prioritization
+          </button>
+          <button
+            class="category-btn"
+            onclick="quickSend('Suggest an energy management technique')"
+          >
+            <span class="category-dot" style="color: #c57bff"></span> Energy
+          </button>
+          <button
+            class="category-btn"
+            onclick="quickSend('Suggest a planning technique')"
+          >
+            <span class="category-dot" style="color: #ff6b9d"></span> Planning
+          </button>
+        </div>
+
+        <div class="sidebar-section">
+          <p class="sidebar-label">Quick Actions</p>
+          <button
+            class="category-btn"
+            onclick="quickSend('Summarize our conversation')"
+          >
+            <span class="category-dot" style="color: #aaa"></span> Summarize
+          </button>
+          <button
+            class="category-btn"
+            onclick="quickSend('Analyze my mood and topics')"
+          >
+            <span class="category-dot" style="color: #aaa"></span> Analyze
+            Session
+          </button>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="session-badge">
+            <strong>Session ID</strong>
+            <span id="session-display">—</span>
+          </div>
+          <button class="clear-btn" onclick="clearChat()">
+            Clear conversation
+          </button>
+        </div>
+      </aside>
+
+      <!-- ── Chat Panel ────────────────────── -->
+      <main class="chat-panel">
+        <div class="chat-header">
+          <span class="chat-title">Productivity Assistant</span>
+          <span class="status-dot">online</span>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages" id="messages">
+          <div class="welcome" id="welcome">
+            <div class="welcome-icon">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                />
+              </svg>
+            </div>
+            <h2>What do you want to work on?</h2>
+            <p>
+              Ask me about focus techniques, time management, prioritization, or
+              any productivity method.
+            </p>
+            <div class="quick-btns">
+              <button
+                class="quick-btn"
+                onclick="quickSend('I need help focusing')"
+              >
+                I need help focusing
+              </button>
+              <button
+                class="quick-btn"
+                onclick="quickSend('What is the Pomodoro technique?')"
+              >
+                What is Pomodoro?
+              </button>
+              <button
+                class="quick-btn"
+                onclick="quickSend('I prefer beginner techniques')"
+              >
+                I am a beginner
+              </button>
+              <button
+                class="quick-btn"
+                onclick="quickSend('Recommend something for energy')"
+              >
+                Boost my energy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-area">
+          <div class="input-row">
+            <textarea
+              id="user-input"
+              rows="1"
+              placeholder="Ask about a technique, request a recommendation…"
+            ></textarea>
+            <button id="send-btn" onclick="sendMessage()" aria-label="Send">
+              <svg viewBox="0 0 24 24">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
+          </div>
+          <p class="input-hint">
+            Press
+            <kbd
+              style="
+                font-family: var(--font-body);
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 4px;
+                padding: 1px 6px;
+                font-size: 10px;
+              "
+              >Enter</kbd
+            >
+            to send &nbsp;·&nbsp;
+            <kbd
+              style="
+                font-family: var(--font-body);
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 4px;
+                padding: 1px 6px;
+                font-size: 10px;
+              "
+              >Shift+Enter</kbd
+            >
+            for new line
+          </p>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const SERVER = "http://localhost:8080/chat";
+
+      let sessionId = localStorage.getItem("probot_session");
+      if (!sessionId) {
+        sessionId = "sess_" + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem("probot_session", sessionId);
+      }
+      document.getElementById("session-display").textContent = sessionId;
+
+      const messagesEl = document.getElementById("messages");
+      const inputEl = document.getElementById("user-input");
+      const sendBtn = document.getElementById("send-btn");
+      let isLoading = false;
+
+      function getTime() {
+        return new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function hideWelcome() {
+        const w = document.getElementById("welcome");
+        if (w) w.remove();
+      }
+
+      function appendMessage(role, text, isError) {
+        hideWelcome();
+        const wrap = document.createElement("div");
+        wrap.className = `msg ${role}`;
+
+        const meta = document.createElement("div");
+        meta.className = "msg-meta";
+        meta.textContent =
+          (role === "user" ? "You" : "ProBot") + " · " + getTime();
+
+        const bubble = document.createElement("div");
+        bubble.className =
+          "msg-bubble" +
+          (role === "bot" ? " accent-line" : "") +
+          (isError ? " error" : "");
+        bubble.textContent = text;
+
+        wrap.appendChild(meta);
+        wrap.appendChild(bubble);
+        messagesEl.appendChild(wrap);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return wrap;
+      }
+
+      function showTyping() {
+        const wrap = document.createElement("div");
+        wrap.className = "msg bot";
+        wrap.id = "typing-indicator";
+        const typing = document.createElement("div");
+        typing.className = "typing";
+        for (let i = 0; i < 3; i++) {
+          const d = document.createElement("div");
+          d.className = "typing-dot";
+          typing.appendChild(d);
+        }
+        wrap.appendChild(typing);
+        messagesEl.appendChild(wrap);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function removeTyping() {
+        const el = document.getElementById("typing-indicator");
+        if (el) el.remove();
+      }
+
+      async function sendMessage() {
+        const text = inputEl.value.trim();
+        if (!text || isLoading) return;
+
+        isLoading = true;
+        sendBtn.disabled = true;
+        inputEl.value = "";
+        inputEl.style.height = "auto";
+
+        appendMessage("user", text);
+        showTyping();
+
+        try {
+          const res = await fetch(SERVER, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId, message: text }),
+          });
+
+          removeTyping();
+
+          if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+          const data = await res.json();
+          appendMessage("bot", data.response || "(empty response)");
+        } catch (err) {
+          removeTyping();
+          appendMessage(
+            "bot",
+            "Could not reach the server.\nMake sure the Akka HTTP backend is running on localhost:8080.",
+            true,
+          );
+        }
+
+        isLoading = false;
+        sendBtn.disabled = false;
+        inputEl.focus();
+      }
+
+      function quickSend(text) {
+        inputEl.value = text;
+        sendMessage();
+      }
+
+      function clearChat() {
+        messagesEl.innerHTML = "";
+        sessionId = "sess_" + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem("probot_session", sessionId);
+        document.getElementById("session-display").textContent = sessionId;
+
+        const welcome = document.createElement("div");
+        welcome.id = "welcome";
+        welcome.className = "welcome";
+        welcome.innerHTML = `
+      <div class="welcome-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#b8ff57" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <h2>What do you want to work on?</h2>
+      <p>Ask me about focus techniques, time management, prioritization, or any productivity method.</p>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="quickSend('I need help focusing')">I need help focusing</button>
+        <button class="quick-btn" onclick="quickSend('What is the Pomodoro technique?')">What is Pomodoro?</button>
+        <button class="quick-btn" onclick="quickSend('I prefer beginner techniques')">I am a beginner</button>
+        <button class="quick-btn" onclick="quickSend('Recommend something for energy')">Boost my energy</button>
+      </div>
+    `;
+        messagesEl.appendChild(welcome);
+      }
+
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      inputEl.addEventListener("input", () => {
+        inputEl.style.height = "auto";
+        inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + "px";
+      });
+    </script>
+  </body>
+</html>

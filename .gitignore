@@ -1,0 +1,33 @@
+# Scala / sbt build files
+target/
+project/target/
+project/project/
+
+# Scala CLI
+.scala-build/
+
+# Metals / Bloop
+.metals/
+.bloop/
+.bsp/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+documentation/
+documentation/
